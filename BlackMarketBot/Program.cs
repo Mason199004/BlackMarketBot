@@ -10,9 +10,13 @@ namespace BlackMarketBot
     {
         public static void Main(string[] args)
             => new Program().MainAsync().GetAwaiter().GetResult();
-        public int[] userClips;
+        public string[] userClips = new string[21474836];
         public async Task MainAsync()
         {
+            for (long i = 0; i < userClips.Length; i++)
+            {
+                userClips[i] = "";
+            }
             var client = new DiscordSocketClient();
 
             client.Log += Log;
@@ -36,7 +40,7 @@ namespace BlackMarketBot
             }
             else if (wordArray[0] == "%help")
             {
-                await message.Channel.SendMessageAsync("Commands: \n %ping");
+                await message.Channel.SendMessageAsync("Commands: \n %ping \n %work");
             }
             else if (wordArray[0] == "%work")
             {
@@ -46,7 +50,29 @@ namespace BlackMarketBot
                     int randPen = rng.Next(1, 5);
                     int profit = randPen * 2;
                     await message.Channel.SendMessageAsync("You sold " + randPen + " pen(s) and earned " + profit + " clips");
-
+                    bool hap = false;
+                    for (int i = 0; i < userClips.Length; i++)
+                    {
+                        if (userClips[i].Contains(Author))
+                        {
+                            int sClip = Convert.ToInt32(userClips[i + 1]);
+                            userClips[i + 1] = Convert.ToString(sClip + profit);
+                            hap = true;
+                        }
+                        else if (!hap && userClips[i] == "")
+                        {
+                            userClips[i] = Author;
+                            userClips[i + 1] = profit.ToString();
+                            hap = true;
+                        }
+                    }
+                    string clips = string.Join("_", userClips);
+                    if (!File.Exists("Clips.txt"))
+                    {
+                        File.Create("Clips.txt");
+                    }
+                    File.WriteAllText("Clips.txt", clips);
+                    
                 }
             }
             
