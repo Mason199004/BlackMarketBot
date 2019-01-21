@@ -17,6 +17,11 @@ namespace BlackMarketBot
             {
                 userClips[i] = "";
             }
+            
+            
+            string ClipsImport = File.ReadAllText("Clips.txt");
+            userClips = ClipsImport.Split('_');
+            
             var client = new DiscordSocketClient();
 
             client.Log += Log;
@@ -24,16 +29,18 @@ namespace BlackMarketBot
             string token = File.ReadAllText("token.txt"); 
             await client.LoginAsync(TokenType.Bot, token);
             await client.StartAsync();
-
+            GC.Collect();
             // Block this task until the program is closed.
             await Task.Delay(-1);
         }
 
         private async Task Client_MessageReceived(SocketMessage message)
         {
+            var client = new DiscordSocketClient();
             var user = message.Author;
             var Author = message.Author.ToString();
             var wordArray = message.Content.Split(" ");
+            var guild = message.Source;
             if (wordArray[0] == "%ping")
             {
                 await message.Channel.SendMessageAsync("Pong");
@@ -74,6 +81,26 @@ namespace BlackMarketBot
                     File.WriteAllText("Clips.txt", clips);
                     
                 }
+            }
+            else if (wordArray[0] == "%wallet")
+            {
+                for (int i = 0; i < userClips.Length; i++)
+                {
+                    if (userClips[i] == Author)
+                    {
+                        var msg = await message.Channel.SendMessageAsync("You have " + userClips[i + 1] + " clips");
+                        var emoji = new Emoji("📎");
+                        await msg.AddReactionAsync(emoji);
+                        
+                        
+                        
+                    }
+                }
+            }
+            else if (wordArray[0] == "%mug")
+            {
+                
+                
             }
             
         }
