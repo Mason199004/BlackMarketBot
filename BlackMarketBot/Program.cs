@@ -3,11 +3,13 @@ using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
 using System.IO;
+using Discord.Net.Rest;
 
 namespace BlackMarketBot
 {
     public class Program
     {
+        
         public static void Main(string[] args)
             => new Program().MainAsync().GetAwaiter().GetResult();
         public string[] userClips = new string[21474836];
@@ -17,12 +19,16 @@ namespace BlackMarketBot
             {
                 userClips[i] = "";
             }
-            
-            
+            var client = new DiscordSocketClient(new DiscordSocketConfig
+            {
+                LogLevel = LogSeverity.Debug,
+                DownloadAllUsers = true
+            });
+
             string ClipsImport = File.ReadAllText("Clips.txt");
             userClips = ClipsImport.Split('_');
             
-            var client = new DiscordSocketClient();
+            
 
             client.Log += Log;
             client.MessageReceived += Client_MessageReceived;
@@ -37,10 +43,11 @@ namespace BlackMarketBot
         private async Task Client_MessageReceived(SocketMessage message)
         {
             var client = new DiscordSocketClient();
+            
             var user = message.Author;
             var Author = message.Author.ToString();
             var wordArray = message.Content.Split(" ");
-            var guild = message.Source;
+            
             if (wordArray[0] == "%ping")
             {
                 await message.Channel.SendMessageAsync("Pong");
@@ -99,8 +106,46 @@ namespace BlackMarketBot
             }
             else if (wordArray[0] == "%mug")
             {
+                int j = 0;
+                int k = 0;
                 
+                string idUserO = wordArray[1];
+                string idUserO1 = idUserO.Substring(3);
+                string idUserO2 = idUserO1.Remove(idUserO1.IndexOf('>'));
+                ulong idUserO3 = Convert.ToUInt64(idUserO2);
+                var otherUser = client.GetUser(idUserO3);
                 
+                foreach (string s in userClips)
+                {
+                    if (s == otherUser.ToString())
+                    {
+                        if (Convert.ToInt32(userClips[j + 1]) > 100)
+                        {
+                            foreach (string d in userClips)
+                            {
+                                if (d == Author)
+                                {
+                                    if (Convert.ToInt32(userClips[k + 1]) > 100)
+                                    {
+                                        var rnd = new Random();
+                                        int rand = rnd.Next(1, 10);
+                                        if (rand > 5)
+                                        {
+                                            string sclips = Convert.ToString(Convert.ToInt32(userClips[j + 1]) + 100);
+                                            userClips[j + 1] = sclips;
+                                            await message.Channel.SendMessageAsync(user.Mention + " mugged 100 clips from " + otherUser);
+                                        }
+                                    }
+                                }
+                                k++;
+                            }
+                        }
+                    }
+                    j++;
+                }
+                Console.WriteLine(otherUser);
+                Console.WriteLine(idUserO1);
+                Console.WriteLine(wordArray[1]);
             }
             
         }
