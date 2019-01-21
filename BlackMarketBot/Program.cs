@@ -22,7 +22,7 @@ namespace BlackMarketBot
             var client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Debug,
-                DownloadAllUsers = true
+                AlwaysDownloadUsers = true
             });
 
             string ClipsImport = File.ReadAllText("Clips.txt");
@@ -42,6 +42,7 @@ namespace BlackMarketBot
 
         private async Task Client_MessageReceived(SocketMessage message)
         {
+            
             var client = new DiscordSocketClient();
             
             var user = message.Author;
@@ -54,7 +55,7 @@ namespace BlackMarketBot
             }
             else if (wordArray[0] == "%help")
             {
-                await message.Channel.SendMessageAsync("Commands: \n %ping \n %work");
+                await message.Channel.SendMessageAsync("Commands: \n %ping \n %work \n %wallet");
             }
             else if (wordArray[0] == "%work")
             {
@@ -109,15 +110,15 @@ namespace BlackMarketBot
                 int j = 0;
                 int k = 0;
                 
-                string idUserO = wordArray[1];
-                string idUserO1 = idUserO.Substring(3);
-                string idUserO2 = idUserO1.Remove(idUserO1.IndexOf('>'));
-                ulong idUserO3 = Convert.ToUInt64(idUserO2);
-                var otherUser = client.GetUser(idUserO3);
-                
+                //string idUserO = wordArray[1];
+                //string idUserO1 = idUserO.Substring(3);
+                //string idUserO2 = idUserO1.Remove(idUserO1.IndexOf('>'));
+                //ulong idUserO3 = Convert.ToUInt64(idUserO2);
+                var otherUser = wordArray[1];
+                bool h = false;
                 foreach (string s in userClips)
                 {
-                    if (s == otherUser.ToString())
+                    if (s == otherUser.ToString() && !h)
                     {
                         if (Convert.ToInt32(userClips[j + 1]) > 100)
                         {
@@ -129,11 +130,23 @@ namespace BlackMarketBot
                                     {
                                         var rnd = new Random();
                                         int rand = rnd.Next(1, 10);
-                                        if (rand > 5)
+                                        if (rand > 7)
                                         {
                                             string sclips = Convert.ToString(Convert.ToInt32(userClips[j + 1]) + 100);
                                             userClips[j + 1] = sclips;
+                                            sclips = Convert.ToString(Convert.ToInt32(userClips[k + 1]) - 100);
+                                            userClips[k + 1] = sclips;
+                                            await message.Channel.SendMessageAsync(otherUser + " pulled a reverse card and mugged " + user.Mention);
+                                            h = true;
+                                        }
+                                        else
+                                        {
+                                            string sclips = Convert.ToString(Convert.ToInt32(userClips[j + 1]) - 100);
+                                            userClips[j + 1] = sclips;
+                                            sclips = Convert.ToString(Convert.ToInt32(userClips[k + 1]) + 100);
+                                            userClips[k + 1] = sclips;
                                             await message.Channel.SendMessageAsync(user.Mention + " mugged 100 clips from " + otherUser);
+                                            h = true;
                                         }
                                     }
                                 }
@@ -141,10 +154,11 @@ namespace BlackMarketBot
                             }
                         }
                     }
+                    
                     j++;
                 }
                 Console.WriteLine(otherUser);
-                Console.WriteLine(idUserO1);
+                
                 Console.WriteLine(wordArray[1]);
             }
             
