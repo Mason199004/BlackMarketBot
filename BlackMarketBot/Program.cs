@@ -130,9 +130,9 @@ namespace BlackMarketBot
 							else
 							{
 								string sclips = Convert.ToString(Convert.ToInt32(userClips[meind + 1]) - 100);
-								userClips[j + 1] = sclips;
+								userClips[meind + 1] = sclips;
 								sclips = Convert.ToString(Convert.ToInt32(userClips[mind + 1]) + 100);
-								userClips[k + 1] = sclips;
+								userClips[mind + 1] = sclips;
 								await message.Channel.SendMessageAsync(user.Mention + " mugged 100 clips from " + u.Mention);
 							}
 						}
