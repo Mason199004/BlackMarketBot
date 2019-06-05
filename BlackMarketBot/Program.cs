@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using System.IO;
 using Discord.Net.Rest;
+using System.Collections.Generic;
 
 namespace BlackMarketBot
 {
@@ -12,21 +13,21 @@ namespace BlackMarketBot
         
         public static void Main(string[] args)
             => new Program().MainAsync().GetAwaiter().GetResult();
-        public string[] userClips = new string[21474836];
+		public List<string> userClips = new List<string>();
         public async Task MainAsync()
         {
-            for (long i = 0; i < userClips.Length; i++)
-            {
-                userClips[i] = "";
-            }
+           
             var client = new DiscordSocketClient(new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Debug,
                 AlwaysDownloadUsers = true
             });
 
-            string ClipsImport = File.ReadAllText("Clips.txt");
-            userClips = ClipsImport.Split('_');
+            string[] ClipsImport = File.ReadAllText("Clips.txt").Split('_');
+			foreach (var e in ClipsImport)
+			{
+				userClips.Add(e);
+			}
             
             
 
@@ -66,21 +67,20 @@ namespace BlackMarketBot
                     int profit = randPen * 2;
                     await message.Channel.SendMessageAsync("You sold " + randPen + " pen(s) and earned " + profit + " clips");
                     bool hap = false;
-                    for (int i = 0; i < userClips.Length; i++)
-                    {
-                        if (userClips[i].Contains(Author))
-                        {
-                            int sClip = Convert.ToInt32(userClips[i + 1]);
-                            userClips[i + 1] = Convert.ToString(sClip + profit);
-                            hap = true;
-                        }
-                        else if (!hap && userClips[i] == "")
-                        {
-                            userClips[i] = Author;
-                            userClips[i + 1] = profit.ToString();
-                            hap = true;
-                        }
-                    }
+					if (userClips.Contains(user.Id.ToString()))
+					{
+
+						int ind = userClips.IndexOf(user.Id.ToString());
+						int sClip = Convert.ToInt32(userClips[ind + 1]);
+						userClips[ind + 1] = Convert.ToString(sClip + profit);
+					}
+					else
+					{
+						userClips.Add(user.Id.ToString());
+						userClips.Add(profit.ToString());
+					}
+					
+					
                     string clips = string.Join("_", userClips);
                     if (!File.Exists("Clips.txt"))
                     {
@@ -92,74 +92,57 @@ namespace BlackMarketBot
             }
             else if (wordArray[0] == "%wallet")
             {
-                for (int i = 0; i < userClips.Length; i++)
-                {
-                    if (userClips[i] == Author)
-                    {
-                        var msg = await message.Channel.SendMessageAsync("You have " + userClips[i + 1] + " clips");
-                        var emoji = new Emoji("📎");
-                        await msg.AddReactionAsync(emoji);
-                        
-                        
-                        
-                    }
-                }
+				int ind = userClips.IndexOf(user.Id.ToString());
+				var msg = await message.Channel.SendMessageAsync("You Have " + userClips[ind + 1] + " clips");
+				var emoji = new Emoji("📎");
+				await msg.AddReactionAsync(emoji);
+				
             }
             else if (wordArray[0] == "%mug")
             {
                 int j = 0;
                 int k = 0;
+
+				//string idUserO = wordArray[1];
+				//string idUserO1 = idUserO.Substring(3);
+				//string idUserO2 = idUserO1.Remove(idUserO1.IndexOf('>'));
+				//ulong idUserO3 = Convert.ToUInt64(idUserO2);
+
+				int mind = userClips.IndexOf(user.Id.ToString());
+
+				if (message.MentionedUsers.Count == 1)
+				{
+					foreach (var u in message.MentionedUsers)
+					{
+						var meind = userClips.IndexOf(u.Id.ToString());
+						if (Convert.ToUInt32(userClips[mind + 1]) > 100 && Convert.ToUInt32(userClips[meind + 1]) > 100)
+						{
+							var rnd = new Random();
+							int rand = rnd.Next(1, 10);
+							if (rand > 7)
+							{
+								string sclips = Convert.ToString(Convert.ToInt32(userClips[meind + 1]) + 100);
+								userClips[meind + 1] = sclips;
+								sclips = Convert.ToString(Convert.ToInt32(userClips[mind + 1]) - 100);
+								userClips[mind + 1] = sclips;
+								await message.Channel.SendMessageAsync(u.Mention + " pulled a reverse card and mugged " + user.Mention);
+							}
+							else
+							{
+								string sclips = Convert.ToString(Convert.ToInt32(userClips[meind + 1]) - 100);
+								userClips[j + 1] = sclips;
+								sclips = Convert.ToString(Convert.ToInt32(userClips[mind + 1]) + 100);
+								userClips[k + 1] = sclips;
+								await message.Channel.SendMessageAsync(user.Mention + " mugged 100 clips from " + u.Mention);
+							}
+						}
+					}
+				}
+
                 
-                //string idUserO = wordArray[1];
-                //string idUserO1 = idUserO.Substring(3);
-                //string idUserO2 = idUserO1.Remove(idUserO1.IndexOf('>'));
-                //ulong idUserO3 = Convert.ToUInt64(idUserO2);
-                var otherUser = wordArray[1];
-                bool h = false;
-                foreach (string s in userClips)
-                {
-                    if (s == otherUser.ToString() && !h)
-                    {
-                        if (Convert.ToInt32(userClips[j + 1]) > 100)
-                        {
-                            foreach (string d in userClips)
-                            {
-                                if (d == Author)
-                                {
-                                    if (Convert.ToInt32(userClips[k + 1]) > 100)
-                                    {
-                                        var rnd = new Random();
-                                        int rand = rnd.Next(1, 10);
-                                        if (rand > 7)
-                                        {
-                                            string sclips = Convert.ToString(Convert.ToInt32(userClips[j + 1]) + 100);
-                                            userClips[j + 1] = sclips;
-                                            sclips = Convert.ToString(Convert.ToInt32(userClips[k + 1]) - 100);
-                                            userClips[k + 1] = sclips;
-                                            await message.Channel.SendMessageAsync(otherUser + " pulled a reverse card and mugged " + user.Mention);
-                                            h = true;
-                                        }
-                                        else
-                                        {
-                                            string sclips = Convert.ToString(Convert.ToInt32(userClips[j + 1]) - 100);
-                                            userClips[j + 1] = sclips;
-                                            sclips = Convert.ToString(Convert.ToInt32(userClips[k + 1]) + 100);
-                                            userClips[k + 1] = sclips;
-                                            await message.Channel.SendMessageAsync(user.Mention + " mugged 100 clips from " + otherUser);
-                                            h = true;
-                                        }
-                                    }
-                                }
-                                k++;
-                            }
-                        }
-                    }
-                    
-                    j++;
-                }
-                Console.WriteLine(otherUser);
                 
-                Console.WriteLine(wordArray[1]);
+                
+                
             }
             
         }
